@@ -9,3 +9,7 @@ The code is not idiomatic JavaScript, but JavaScript made to keep the limitation
 - we use global variables for the game state, and for the temporary arrays
 
 To install the dependencies, run `npm install`, to run the game, run `node kulki-textmode-prototype.mjs` (`mjs`, so that we can use `import`, because `inquirer` is not compatible with `require`).
+
+## Acknowledgements
+
+Large part of the code was written by GitHub Copilot.
