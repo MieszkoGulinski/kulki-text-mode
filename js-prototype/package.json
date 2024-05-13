@@ -1,0 +1,11 @@
+{
+  "name": "js-prototype",
+  "version": "1.0.0",
+  "description": "",
+  "main": "kulki-textmode-prototype.mjs",
+  "author": "",
+  "private": true,
+  "dependencies": {
+    "inquirer": "^9.2.20"
+  }
+}
