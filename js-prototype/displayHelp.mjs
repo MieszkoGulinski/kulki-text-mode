@@ -1,5 +1,4 @@
 const displayHelp = () => {
-  // TODO write more
   console.log("Rules:");
   console.log(
     "- You can move balls from one cell to another, if the path from the source and target cell exists"
