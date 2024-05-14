@@ -29,7 +29,7 @@ const cellsCount = width * height;
 
 const getCellValue = (board, x, y) => {
   if (x < 0 || x >= width || y < 0 || y >= height) return 0;
-  board[y * width + x];
+  return board[y * width + x];
 };
 
 // The following variables are used to keep track of the current series of balls we are counting.
@@ -115,13 +115,12 @@ const removeSeriesAndUpdateScore = (board) => {
       const x = counter;
       const y = startY;
       visitCell(board, x, y);
-      if (isAnySeriesFound()) {
-        horizontalSeriesIndexes[horizontalSeriesCount] =
-          currentSeriesStartCellIndex;
-        horizontalSeriesLengths[horizontalSeriesCount] = currentSeriesLength;
-        horizontalSeriesCount++;
-        break; // no need to continue the search
-      }
+    }
+    if (isAnySeriesFound()) {
+      horizontalSeriesIndexes[horizontalSeriesCount] =
+        currentSeriesStartCellIndex;
+      horizontalSeriesLengths[horizontalSeriesCount] = currentSeriesLength;
+      horizontalSeriesCount++;
     }
   }
 
@@ -134,13 +133,11 @@ const removeSeriesAndUpdateScore = (board) => {
       const x = startX;
       const y = counter;
       visitCell(board, x, y);
-      if (isAnySeriesFound()) {
-        verticalSeriesIndexes[verticalSeriesCount] =
-          currentSeriesStartCellIndex;
-        verticalSeriesLengths[verticalSeriesCount] = currentSeriesLength;
-        verticalSeriesCount++;
-        break;
-      }
+    }
+    if (isAnySeriesFound()) {
+      verticalSeriesIndexes[verticalSeriesCount] = currentSeriesStartCellIndex;
+      verticalSeriesLengths[verticalSeriesCount] = currentSeriesLength;
+      verticalSeriesCount++;
     }
   }
 
@@ -156,13 +153,11 @@ const removeSeriesAndUpdateScore = (board) => {
       const x = startX + counter;
       const y = counter;
       visitCell(board, x, y);
-      if (isAnySeriesFound()) {
-        diagonalSeriesIndexes[diagonalSeriesCount] =
-          currentSeriesStartCellIndex;
-        diagonalSeriesLengths[diagonalSeriesCount] = currentSeriesLength;
-        diagonalSeriesCount++;
-        break;
-      }
+    }
+    if (isAnySeriesFound()) {
+      diagonalSeriesIndexes[diagonalSeriesCount] = currentSeriesStartCellIndex;
+      diagonalSeriesLengths[diagonalSeriesCount] = currentSeriesLength;
+      diagonalSeriesCount++;
     }
   }
 
@@ -178,14 +173,12 @@ const removeSeriesAndUpdateScore = (board) => {
       const x = startX - counter;
       const y = counter;
       visitCell(board, x, y);
-      if (isAnySeriesFound()) {
-        backDiagonalSeriesIndexes[backDiagonalSeriesCount] =
-          currentSeriesStartCellIndex;
-        backDiagonalSeriesLengths[backDiagonalSeriesCount] =
-          currentSeriesLength;
-        backDiagonalSeriesCount++;
-        break;
-      }
+    }
+    if (isAnySeriesFound()) {
+      backDiagonalSeriesIndexes[backDiagonalSeriesCount] =
+        currentSeriesStartCellIndex;
+      backDiagonalSeriesLengths[backDiagonalSeriesCount] = currentSeriesLength;
+      backDiagonalSeriesCount++;
     }
   }
 
