@@ -10,7 +10,7 @@ The code is not idiomatic JavaScript, but JavaScript made to keep the limitation
 
 Don't look at this code as a good example of JavaScript programming. It's a prototype for a game that will be later ported to Rexx.
 
-To install the dependencies, run `npm install`, to run the game, run `node kulki-textmode-prototype.mjs` (`mjs`, so that we can use `import`, because `inquirer` is not compatible with `require`).
+To install the dependencies, run `npm install`, to run the game, run `node kulki-textmode-prototype.mjs` (`mjs`, so that we can use `import`, because `inquirer` is not compatible with `require`). Run the tests with `node test.mjs`.
 
 ## Acknowledgements
 

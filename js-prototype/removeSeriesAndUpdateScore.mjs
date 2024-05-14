@@ -17,10 +17,59 @@
 // Note that there will be **at most one series** of the same color in a given row, column or diagonal line, as the series has to be at least 5 balls long,
 // and there are only 9 columns, 9 rows, and the diagonal lines have at most 9 cells. This means that we can safely stop counting the series after we find one.
 
+// For the code simplification, we check an additional cell after the series, to avoid checking the bounds in the loop. This cell will always be empty.
+// That's why we use `counter <= width` and `counter <= height` in the loops.
+
+// Some of the functions are individually exported, so they can be tested separately.
+
 // In the final translated version, this function, even if called from an external file, will have these variables accessible
 const width = 9;
 const height = 9;
 const cellsCount = width * height;
+
+const getCellValue = (board, x, y) => {
+  if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+  board[y * width + x];
+};
+
+// The following variables are used to keep track of the current series of balls we are counting.
+let currentSeriesLength = 0;
+let currentSeriesStartCellIndex = 0;
+let currentSeriesColor = 0;
+
+const resetSeriesSearch = () => {
+  currentSeriesLength = 0;
+  currentSeriesStartCellIndex = 0;
+  currentSeriesColor = 0;
+};
+
+export const visitCell = (board, x, y) => {
+  const cellColor = getCellValue(board, x, y);
+
+  // We can ignore the cell if we already found a series of 5 or more balls and this is the end of the series,
+  // as there will be at most one series of the same color in a given row, column or diagonal line.
+  if (
+    currentSeriesLength >= 5 &&
+    cellColor !== currentSeriesColor &&
+    currentSeriesColor !== 0
+  )
+    return;
+
+  if (cellColor === currentSeriesColor) {
+    // We are continuing the series
+    currentSeriesLength++;
+  } else {
+    // We are starting a new series
+    currentSeriesLength = 1;
+    currentSeriesStartCellIndex = y * width + x;
+    currentSeriesColor = cellColor;
+  }
+  // Note that series detection may detect a series of zeros. That's why we need to check if the series color is not 0.
+};
+
+export const isAnySeriesFound = () => {
+  return currentSeriesLength >= 5 && currentSeriesColor !== 0;
+};
 
 // The following arrays will store the indexes of the start cell of the series, and the length of the series.
 // In the example above, we will have one horizontal series and one vertical series, so:
@@ -58,50 +107,86 @@ const removeSeriesAndUpdateScore = (board) => {
   // 1. Get the horizontal series, vertical series, diagonal series and back-diagonal series
 
   // Horizontal series
-  for (let y = 0; y < height; y++) {
+  for (let startY = 0; startY < height; startY++) {
     // For each row.
-    // There will be at most one series of the same color in a row, as the series has to be at least 5 balls long,
-    // and there are only 9 columns.
-    let currentColor = 0;
-    let currentSeriesLength = 0;
-    let currentSeriesStartIndex = 0;
 
-    // ...
+    resetSeriesSearch();
+    for (let counter = 0; counter <= width; counter++) {
+      const x = counter;
+      const y = startY;
+      visitCell(board, x, y);
+      if (isAnySeriesFound()) {
+        horizontalSeriesIndexes[horizontalSeriesCount] =
+          currentSeriesStartCellIndex;
+        horizontalSeriesLengths[horizontalSeriesCount] = currentSeriesLength;
+        horizontalSeriesCount++;
+        break; // no need to continue the search
+      }
+    }
   }
-  // Vertical series
-  for (let x = 0; x < width; x++) {
-    // For each column.
-    let currentColor = 0;
-    let currentSeriesLength = 0;
-    let currentSeriesStartIndex = 0;
 
-    // ...
+  // Vertical series
+  for (let startX = 0; startX < width; startX++) {
+    // For each column.
+
+    resetSeriesSearch();
+    for (let counter = 0; counter <= height; counter++) {
+      const x = startX;
+      const y = counter;
+      visitCell(board, x, y);
+      if (isAnySeriesFound()) {
+        verticalSeriesIndexes[verticalSeriesCount] =
+          currentSeriesStartCellIndex;
+        verticalSeriesLengths[verticalSeriesCount] = currentSeriesLength;
+        verticalSeriesCount++;
+        break;
+      }
+    }
   }
 
   // Diagonal series. The series are counted from the top left to the bottom right.
   // To find diagonal lines not beginning from the first row, e.g A3 B4 C5 D6 E7..., we start from a negative column index,
   // and assume that out of bound cells are empty. We don't need to check the diagonal lines starting from the last 4 columns,
   // as they will never contain a series of 5 balls.
-  for (let x = -4; x < width - 4; x++) {
+  for (let startX = -4; startX < width - 4; startX++) {
     // For each column.
-    let currentColor = 0;
-    let currentSeriesLength = 0;
-    let currentSeriesStartIndex = 0;
 
-    // ...
+    resetSeriesSearch();
+    for (let counter = 0; counter <= height; counter++) {
+      const x = startX + counter;
+      const y = counter;
+      visitCell(board, x, y);
+      if (isAnySeriesFound()) {
+        diagonalSeriesIndexes[diagonalSeriesCount] =
+          currentSeriesStartCellIndex;
+        diagonalSeriesLengths[diagonalSeriesCount] = currentSeriesLength;
+        diagonalSeriesCount++;
+        break;
+      }
+    }
   }
 
   // Back-diagonal series. The series are counted from the top right to the bottom left.
   // To find diagonal lines not beginning from the first row, e.g I4 H5 G6..., we search columns with index greater than the width,
   // and assume that out of bound cells are empty. We don't need to check the diagonal lines starting from the first 4 columns,
   // as they will never contain a series of 5 balls.
-  for (let x = 4; x < width + 4; x++) {
+  for (let startX = 4; startX < width + 4; startX++) {
     // For each column.
-    let currentColor = 0;
-    let currentSeriesLength = 0;
-    let currentSeriesStartIndex = 0;
 
-    // ...
+    resetSeriesSearch();
+    for (let counter = 0; counter <= height; counter++) {
+      const x = startX - counter;
+      const y = counter;
+      visitCell(board, x, y);
+      if (isAnySeriesFound()) {
+        backDiagonalSeriesIndexes[backDiagonalSeriesCount] =
+          currentSeriesStartCellIndex;
+        backDiagonalSeriesLengths[backDiagonalSeriesCount] =
+          currentSeriesLength;
+        backDiagonalSeriesCount++;
+        break;
+      }
+    }
   }
 
   // 2. If no series found, return early
