@@ -11,13 +11,24 @@
 //   7 1
 // 6   1 3 4
 // and should award 10 points (5 for each series)
-// Diagonal series are counted separately as well
+// Diagonal series are counted separately as well, but this example doesn't have any diagonal series.
 // Returns the score.
 
-// These constants will be probably provided as arguments to the function in the final version
+// Note that there will be **at most one series** of the same color in a given row, column or diagonal line, as the series has to be at least 5 balls long,
+// and there are only 9 columns, 9 rows, and the diagonal lines have at most 9 cells. This means that we can safely stop counting the series after we find one.
+
+// In the final translated version, this function, even if called from an external file, will have these variables accessible
 const width = 9;
 const height = 9;
 const cellsCount = width * height;
+
+// The following arrays will store the indexes of the start cell of the series, and the length of the series.
+// In the example above, we will have one horizontal series and one vertical series, so:
+// - both horizontalSeriesCount and verticalSeriesCount will be 1
+// - verticalSeriesIndexes[0] will be 2 (the index of the first cell of the vertical series)
+// - horizontalSeriesIndexes[0] will be 18 (the index of the first cell of the horizontal series)
+// - both horizontalSeriesIndexes[0] and verticalSeriesLengths[0] will be 5
+// We can safely ignore the content of the arrays beyond the series count. The arrays are initialized with the maximum possible length.
 
 const horizontalSeriesIndexes = new Uint8Array(cellsCount);
 const horizontalSeriesLengths = new Uint8Array(cellsCount);
@@ -67,8 +78,11 @@ const removeSeriesAndUpdateScore = (board) => {
     // ...
   }
 
-  // Diagonal series
-  for (let y = 0; y < height; y++) {
+  // Diagonal series. The series are counted from the top left to the bottom right.
+  // To find diagonal lines not beginning from the first row, e.g A3 B4 C5 D6 E7..., we start from a negative column index,
+  // and assume that out of bound cells are empty. We don't need to check the diagonal lines starting from the last 4 columns,
+  // as they will never contain a series of 5 balls.
+  for (let x = -4; x < width - 4; x++) {
     // For each column.
     let currentColor = 0;
     let currentSeriesLength = 0;
@@ -77,8 +91,11 @@ const removeSeriesAndUpdateScore = (board) => {
     // ...
   }
 
-  // Back-diagonal series
-  for (let y = 0; y < height; y++) {
+  // Back-diagonal series. The series are counted from the top right to the bottom left.
+  // To find diagonal lines not beginning from the first row, e.g I4 H5 G6..., we search columns with index greater than the width,
+  // and assume that out of bound cells are empty. We don't need to check the diagonal lines starting from the first 4 columns,
+  // as they will never contain a series of 5 balls.
+  for (let x = 4; x < width + 4; x++) {
     // For each column.
     let currentColor = 0;
     let currentSeriesLength = 0;

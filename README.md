@@ -70,14 +70,6 @@ Start with the source cell. Then, from the currently visited cell, check all the
 
 If the target cell is reached, the path is clear. If the queue becomes empty, the path is blocked. The algorithm only checks if the path is clear, it doesn't return the path itself.
 
-### Depth-first search
-
-The pathfinding algorithm can be also based on the [depth-first search](https://en.wikipedia.org/wiki/Depth-first_search) (DFS) algorithm - it differs from BFS in the order of visiting the cells. In DFS, the cells are visited in a depth-first order, i.e. the algorithm goes as deep as possible along each branch before backtracking. Implementation of DFS differs from BFS in the data structure used to store the cells to visit. In BFS, a queue is used, while in DFS, a stack is used. Otherwise, the algorithm is the same.
-
-DFS will be more efficient than BFS, because of limitations of the used language. Rexx doesn't have a built-in queue data structure, and doesn't support pointers, so the queue needs to be implemented as an array. While a stack can be implemented as an array and a variable storing the current stack size, a queue implemented this way would require shifting of all of the the elements in the array after each dequeue operation. A fixed-size array can be used, as the stack will never be longer than the number of cells on the board. BREXX/370 supports [fixed-size integer arrays created using ICREATE function](https://brexx370.readthedocs.io/en/latest/array.html).
-
-On the other hand, DFS may not find the shortest path, but it will find a path if it exists. The pathfinding algorithm is used to check if the path is clear, not to find the shortest path. It's necessary to determine which of the two algorithms is faster. 
-
 ### Improved pathfinding algorithm, returning the path
 
 The modification of the BFS algorithm described above is to save list of available single-step paths. When the target cell is reached, the path is reconstructed by following the parent cells. The path is returned as a list of cells. Then, movement of the ball can be animated by moving the ball from the source cell to the target cell, one cell at a time, with a short delay between each move.
@@ -93,3 +85,11 @@ The coordinates can be converted to integer values, e.g. A1 = 0, A2 = 1, ..., I9
 - interface controlled with arrow keys, with colors, using the [formatted screens](https://brexx370.readthedocs.io/en/latest/fss.html) feature
 - saving the game state and restoring it later, using [dataset functions](https://brexx370.readthedocs.io/en/latest/dataset.html)
 
+## Implementation
+
+The code [can be split into multiple files](https://brexx370.readthedocs.io/en/latest/calling.html):
+- main program
+- help page
+- code for finding series of balls, as this code is very large, and the main file with this code would be too long to be easily maintainable
+
+The code in the called file is able to access the global variables from the main program, so the code in the third file can access (both read and update) the board array.
