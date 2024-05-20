@@ -1,3 +1,62 @@
 /* Implementation of game Kulki (5 in a row) in Rexx, particularly BREXX/370 running on MVS TK5 */
 
-SAY "Hello world"
+/* It uses BREXX/370-specific functions such as integer arrays and fullscreen output mode */
+
+CALL IMPORT FSSAPI
+ADDRESS FSS
+CALL FSSINIT
+CALL FSSTITLE 'Kulki (5 in a row)', #WHITE
+CALL FSSTEXT 'Move ===>', 3, 2, , #WHITE
+CALL FSSFIELD 'MOVE', 3, 12, , #GREEN
+CALL FSSCURSOR 'MOVE'
+
+CALL FSSTEXT 'A B C D E F G H I', 5, 6, , #WHITE
+CALL FSSTEXT '-------------------', 6, 5, , #WHITE
+CALL FSSTEXT '-------------------', 16, 5, , #WHITE
+CALL FSSTEXT 'A B C D E F G H I', 17, 6, , #WHITE
+
+width = 9
+height = 9
+colorCount = 7
+cellsCount = width * height
+
+board = ICREATE(cellsCount, NULL)
+
+/* Example board */
+CALL ISET(board, 11, 4)
+CALL ISET(board, 21, 1)
+CALL ISET(board, 32, 1)
+CALL ISET(board, 33, 3)
+CALL ISET(board, 62, 4)
+
+
+DO FOREVER
+  /* Display the board */
+  DO y=0 TO height-1
+    line = '' || y+1 || '| '
+
+    DO x=0 TO width-1
+      cellIndex = y*width+x
+      cellValue = IGET(board,cellIndex+1) /* in Rexx, array indexes start with 1 */
+      IF cellValue = 0 THEN
+        line = line || '  '
+      ELSE
+        line = line || cellValue || ' '
+    END
+
+    line = line || '| ' || y+1
+
+    CALL FSSTEXT line, y+7, 3, , #white
+  END
+
+
+  key = FSSREFRESH()
+  IF key = 243 THEN LEAVE /* F3 to close the game */
+  userMove = CALL FSSFGET('MOVE')
+
+  CALL FSSFSET 'MOVE', '     ' /* Clear the field */
+  CALL FSSCURSOR 'MOVE'
+END
+
+CALl FSSCLOSE /* Terminate Screen Environment */
+RETURN 0

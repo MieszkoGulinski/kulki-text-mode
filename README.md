@@ -2,9 +2,9 @@ Long time ago I ported a certain puzzle game ("Kulki", or 5-in-a-row) into a web
 
 ## Target platform
 
-The target platform is MVS TK5 running on Hercules emulator. The platform is a System/370 mainframe computer, and the operating system is MVS 3.8j. The programming language is Rexx, specifically the [BREXX/370](https://brexx370.readthedocs.io/en/latest/index.html) implementation.
+The target platform is MVS TK5 running on Hercules emulator. It emulates a System/370 mainframe computer, running the operating system MVS 3.8j. The programming language is Rexx, specifically the [BREXX/370](https://brexx370.readthedocs.io/en/latest/index.html) implementation.
 
-There is also an intermediate prototype of the game, written in JavaScript (running on Node.js), for fully testing the game logic on a modern computer, before porting it to Rexx. The prototype isn't written in modern idiomatic JavaScript, but in a style that can be easily translated to Rexx, keeping the limitations of the target language in mind.
+The repository also includes an intermediate prototype of the game, written in JavaScript, running on Node.js, for fully testing the game logic on a modern computer, before porting it to Rexx. The prototype isn't written in modern idiomatic JavaScript, but in a style that can be easily translated to Rexx, keeping the limitations of the target language in mind.
 
 ## Game rules
 
@@ -83,11 +83,6 @@ This is implemented in the web-based version of the game. The algorithm (BFS-bas
 
 The coordinates can be converted to integer values, e.g. A1 = 0, A2 = 1, ..., I9 = 80. The integer coordinates are used to access the elements of the board array, and are used in the pathfinding algorithm (the values on the stack or in the queue are integer coordinates, as the fixed-size array stores integers).
 
-## Future improvements
-
-- interface controlled with arrow keys, with colors, using the [formatted screens](https://brexx370.readthedocs.io/en/latest/fss.html) feature
-- saving the game state and restoring it later, using [dataset functions](https://brexx370.readthedocs.io/en/latest/dataset.html)
-
 ## Implementation
 
 The code [can be split into multiple files](https://brexx370.readthedocs.io/en/latest/calling.html):
@@ -112,4 +107,11 @@ The code in the called file is able to access the global variables from the main
 8. If you haven't done it yet, connect to the emulator using a 3270 terminal emulator (such as x3270 on Linux). Log into the system - the default user name and default password is the same as in step 3.
 9. Either in the OS command line (opened by closing the main system menu), or in the command input appliction (option 6 in the main system menu on TK5), run the command `rx BREXX.V2R5M3.SAMPLES(KULKI)`.
 
-Note that the dataset name may include some other value than `V2R5M3` - for example, [in this tutorial](https://www.youtube.com/watch?v=JzIyFzF6y9Q), the used TK5 instance uses `V2R5M2`. You need to figure out the correct string yourself, by listing existing directory names after opening the FTP client.
+Note that the dataset name may include some other value than `V2R5M3` - for example, [in this tutorial](https://www.youtube.com/watch?v=JzIyFzF6y9Q), the used TK5 instance uses `V2R5M2`. You need to figure out the correct string yourself, for example using dataset search feature (option 3.4 in the TK5 main system menu), or by listing existing directory names after opening the FTP client.
+
+Also, note that the FTP file transfer fails when some user is logged in the terminal - this results in an error `Not opened 13`.
+
+## Future improvements
+
+- interface controlled with arrow keys, with colors, using the [formatted screens](https://brexx370.readthedocs.io/en/latest/fss.html) feature
+- saving the game state and restoring it later, using [dataset functions](https://brexx370.readthedocs.io/en/latest/dataset.html)
