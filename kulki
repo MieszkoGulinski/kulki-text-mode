@@ -5,15 +5,17 @@
 CALL IMPORT FSSAPI
 ADDRESS FSS
 CALL FSSINIT
-CALL FSSTITLE 'Kulki (5 in a row)', #WHITE
-CALL FSSTEXT 'Move ===>', 3, 2, , #WHITE
+CALL FSSTITLE 'Kulki (5 in a row)', #WHITE+#PROT
+CALL FSSTEXT 'Move ===>', 3, 2, , #WHITE+#PROT
 CALL FSSFIELD 'MOVE', 3, 12, , #GREEN
 CALL FSSCURSOR 'MOVE'
 
-CALL FSSTEXT 'A B C D E F G H I', 5, 6, , #WHITE
-CALL FSSTEXT '-------------------', 6, 5, , #WHITE
-CALL FSSTEXT '-------------------', 16, 5, , #WHITE
-CALL FSSTEXT 'A B C D E F G H I', 17, 6, , #WHITE
+CALL FSSTEXT 'A B C D E F G H I', 5, 6, , #WHITE+#PROT
+CALL FSSTEXT '-------------------', 6, 5, , #WHITE+#PROT
+CALL FSSTEXT '-------------------', 16, 5, , #WHITE+#PROT
+CALL FSSTEXT 'A B C D E F G H I', 17, 6, , #WHITE+#PROT
+
+CALL FSSFIELD 'STATUS', 19, 6, , #RED+#PROT
 
 width = 9
 height = 9
@@ -29,7 +31,7 @@ CALL ISET(board, 32, 1)
 CALL ISET(board, 33, 3)
 CALL ISET(board, 62, 4)
 
-
+/* Main game loop */
 DO FOREVER
   /* Display the board */
   DO y=0 TO height-1
@@ -46,17 +48,86 @@ DO FOREVER
 
     line = line || '| ' || y+1
 
-    CALL FSSTEXT line, y+7, 3, , #white
+    CALL FSSTEXT line, y+7, 3, , #WHITE+#PROT /* TODO: later we may use color-coded balls */
   END
 
 
   key = FSSREFRESH()
   IF key = 243 THEN LEAVE /* F3 to close the game */
-  userMove = CALL FSSFGET('MOVE')
+  IF key = 241 THEN DO /* F1 to display menu */
+    CALL displayHelp
+    ITERATE
+  END
+  userCommand = FSSFGET('MOVE')
 
   CALL FSSFSET 'MOVE', '     ' /* Clear the field */
   CALL FSSCURSOR 'MOVE'
+
+  message = runUserCommand(userCommand)
+  CALL FSSFSET 'STATUS', message
 END
 
-CALl FSSCLOSE /* Terminate Screen Environment */
+CALL FSSCLOSE /* Terminate Screen Environment */
 RETURN 0
+
+decodeColIndex:
+  ARG colChar
+  IF colChar='A' THEN RETURN 0
+  IF colChar='B' THEN RETURN 1
+  IF colChar='C' THEN RETURN 2
+  IF colChar='D' THEN RETURN 3
+  IF colChar='E' THEN RETURN 4
+  IF colChar='F' THEN RETURN 5
+  IF colChar='G' THEN RETURN 6
+  IF colChar='H' THEN RETURN 7
+  IF colChar='I' THEN RETURN 8
+RETURN -1 /* invalid */
+
+decodeRowIndex:
+  ARG rowChar
+  IF datatype(rowChar) <> 'NUM' THEN RETURN -1 /* invalid */
+  IF rowChar < 1 THEN RETURN -1
+  IF rowChar > 9 THEN RETURN -1
+RETURN rowChar - 1 /* convert to zero-based index */
+
+
+runUserCommand:
+  ARG userCommand /*e.g. "A3 B4" or "C5 B6" (automatically converted to uppercase by ARG command) */
+
+  startCol = decodeColIndex(substr(userCommand, 1, 1))
+  startRow = decodeRowIndex(substr(userCommand, 2, 1))
+  endCol = decodeColIndex(substr(userCommand, 4, 1))
+  endRow = decodeRowIndex(substr(userCommand, 5, 1))
+
+  IF startCol = -1 | startRow = -1 | endCol = -1 | endRow = -1 THEN RETURN 'Incorrect command'
+
+  startCellIndex = startRow * width + startCol
+  endCellIndex = endRow * width + endCol
+
+  /* Test code */
+  RETURN startCellIndex || ' ' || endCellIndex
+RETURN ''
+
+displayHelp:
+  /* Using SAY when running in FSS (fullscreen screen) mode switches to an empty screen displaying the given text (or multiple lines). */
+  /* Pressing any key will result in closing the screen and restoring the previous screen. */
+  SAY 'How to play:'
+  SAY ''
+  SAY 'You have a 9x9 grid of cells, each cell can contain a ball.'
+  SAY 'The game starts with 5 balls having random colors and random locations.'
+  SAY 'You can move a ball from one cell to another, if the target cell is empty, and there is a path to that cell.'
+  SAY 'Balls can move only vertically and horizontally.'
+  SAY ''
+  SAY 'If a move results in getting a series of at least 5 balls having identical number, this series is removed, and your score is updated.'
+  SAY 'For a series of 5 balls, your score is increased by 5 points, for each extra ball in the series over 5, you get additional 2 points.'
+  SAY 'For example, if you get a series of 6 balls, you get 7 points, and for a series of 8 balls, you get 9 points.'
+  SAY 'The series can be horizontal, vertical or diagonal (both diagonal directions).'
+  SAY ''
+  SAY 'If a move does not result in a series being removed, you get additional 3 balls, with random colors and random locations.'
+  SAY 'The game ends when there is no empty cell.'
+  SAY ''
+  SAY 'To move a ball from one cell to another cell, type the coordinates of the start cell and end cell, in the format "a1 b4".'
+  SAY ''
+  SAY ''
+  SAY 'Have fun!'
+RETURN
