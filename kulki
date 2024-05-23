@@ -6,8 +6,8 @@ CALL IMPORT FSSAPI
 ADDRESS FSS
 CALL FSSINIT
 CALL FSSTITLE 'Kulki (5 in a row)', #WHITE+#PROT
-CALL FSSTEXT 'Move ===>', 3, 2, , #WHITE+#PROT
-CALL FSSFIELD 'MOVE', 3, 12, , #GREEN
+CALL FSSTEXT 'Move ===>', 3, 6, , #WHITE+#PROT
+CALL FSSFIELD 'MOVE', 3, 16, , #GREEN
 CALL FSSCURSOR 'MOVE'
 
 CALL FSSTEXT 'A B C D E F G H I', 5, 6, , #WHITE+#PROT
@@ -16,6 +16,8 @@ CALL FSSTEXT '-------------------', 16, 5, , #WHITE+#PROT
 CALL FSSTEXT 'A B C D E F G H I', 17, 6, , #WHITE+#PROT
 
 CALL FSSFIELD 'STATUS', 19, 6, , #RED+#PROT
+CALL FSSTEXT 'Score:', 21, 6, , #WHITE+#PROT
+CALL FSSFIELD 'SCORE', 21, 12, , #GREEN+#PROT
 
 width = 9
 height = 9
@@ -23,6 +25,7 @@ colorCount = 7
 cellsCount = width * height
 
 board = ICREATE(cellsCount, NULL)
+score = 0
 
 /* Example board */
 CALL ISET(board, 11, 4)
@@ -33,7 +36,7 @@ CALL ISET(board, 62, 4)
 
 /* Main game loop */
 DO FOREVER
-  /* Display the board */
+  /* Display the board and score */
   DO y=0 TO height-1
     line = '' || y+1 || '| '
 
@@ -50,11 +53,11 @@ DO FOREVER
 
     CALL FSSTEXT line, y+7, 3, , #WHITE+#PROT /* TODO: later we may use color-coded balls */
   END
-
+  CALL FSSFSET 'SCORE', score
 
   key = FSSREFRESH()
   IF key = 243 THEN LEAVE /* F3 to close the game */
-  IF key = 241 THEN DO /* F1 to display menu */
+  IF key = 241 THEN DO /* F1 to display help */
     CALL displayHelp
     ITERATE
   END
@@ -90,7 +93,7 @@ decodeRowIndex:
   IF rowChar > 9 THEN RETURN -1
 RETURN rowChar - 1 /* convert to zero-based index */
 
-
+/* Returns an error (or debug) message, or empty string on no error */
 runUserCommand:
   ARG userCommand /*e.g. "A3 B4" or "C5 B6" (automatically converted to uppercase by ARG command) */
 
@@ -104,12 +107,29 @@ runUserCommand:
   startCellIndex = startRow * width + startCol
   endCellIndex = endRow * width + endCol
 
+  IF IGET(board,startCellIndex+1) = 0 THEN RETURN 'Start cell is empty'
+  IF IGET(board,endCellIndex+1) <> 0 THEN RETURN 'End cell is not empty'
+  IF checkPathExists(startCellIndex, endCellIndex) = 0 THEN RETURN 'No path between the cells'
+  isGameOver = performMove(startCellIndex, endCellIndex)
+  IF isGameOver = 1 THEN RETURN 'Game over'
+
   /* Test code */
   RETURN startCellIndex || ' ' || endCellIndex
 RETURN ''
 
+checkPathExists:
+  ARG startCellIndex, endCellIndex
+  /* TODO implement */
+RETURN 1
+
+performMove:
+  ARG startCellIndex, endCellIndex
+  /* Returns 1 if there are no more moves possible */
+  /* TODO implement */
+RETURN 0
+
 displayHelp:
-  /* Using SAY when running in FSS (fullscreen screen) mode switches to an empty screen displaying the given text (or multiple lines). */
+  /* Using SAY when running in FSS (formatted screen) mode switches to an empty screen displaying the given text (or multiple lines). */
   /* Pressing any key will result in closing the screen and restoring the previous screen. */
   SAY 'How to play:'
   SAY ''

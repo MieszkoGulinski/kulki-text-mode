@@ -99,11 +99,11 @@ The code in the called file is able to access the global variables from the main
 
 1. In the emulator console, look up the running processes by using a command `/d a,l`.
 2. If the FTP server is not running, start it by using a command `/s ftpd`. The FTP server will be listening on port 2121. (Note that the command given in the TK4- video tutorial, `/start ftpd,srvport=2100`, does not work).
-3. Connect to the FTP server listening on port 2121. If you want to do it using Linux command-line FTP client, the command for that is `ftp localhost 2121`. Provide the login and password for the MVS user just like during logging in to the system. The default user name is `herc01` and the default password is `CUL8TR`.
-4. Open the directory with BREXX samples. The directory name should look like `BREXX.V2R5M3.SAMPLES`. If you use command-line FTP client, the command for listing all available directories is `ls`. Then, to enter the chosen directory, the command is `cd BREXX.V2R5M3.SAMPLES`. Then, you can look up list of available files using the `ls` command.
-5. **Set the transfer mode to ASCII, not binary**. In the command-line client, the command to do that is `asci`. This is because MVS internally uses different character encoding (EBCDIC) than modern PCs (Unicode, being a superset of ASCII). Transferring files in ASCII mode enables automatic translation of the encoding, while the binary mode prevents the automatic conversion. Usually you want to disable any type of automatic encoding conversion, because modern systems typically use Unicode, but in the case of uploading text files to MVS (and possibly historical systems) automatic conversion is required.
-6. Upload the `kulki` file to the BREXX samples directory. In the command line FTP client, use `put kulki`. If the file already exists on the MVS system, this file will be overwritten. Note that the file doesn't have filename extension - this is because uploading a file to MVS doesn't work when the file has an extension added.
-7. You can verify that the file is uploaded successfully by running `ls` command in the command-line client, to list all files in the current directory. A file named `KULKI` should be visible in the list.
+3. Connect to the FTP server listening on port 2121. Provide the login and password for the MVS user just like during logging in to the system. The default user name is `herc01` and the default password is `CUL8TR`.
+4. Open the directory with BREXX samples. The directory name should look like `BREXX.V2R5M3.SAMPLES`. Find the correct name among the existing directories.
+5. **Set the transfer mode to ASCII, not binary**. This is because MVS internally uses different character encoding (EBCDIC) than modern PCs (Unicode, being a superset of ASCII). Transferring files in ASCII mode enables automatic translation of the encoding, while the binary mode prevents the automatic conversion. Usually you want to disable any type of automatic encoding conversion, because modern systems typically use Unicode, but in the case of uploading text files to MVS (and possibly historical systems) automatic conversion is required.
+6. Upload the `kulki` file to the BREXX samples directory. Note that the file **doesn't** have filename extension - this is because uploading a file to MVS doesn't work when the file has an extension added.
+7. You can verify that the file is uploaded successfully. A file named `KULKI` should be visible among the files in the samples directory.
 8. If you haven't done it yet, connect to the emulator using a 3270 terminal emulator (such as x3270 on Linux). Log into the system - the default user name and default password is the same as in step 3.
 9. Either in the OS command line (opened by closing the main system menu), or in the command input appliction (option 6 in the main system menu on TK5), run the command `rx BREXX.V2R5M3.SAMPLES(KULKI)`.
 
@@ -111,7 +111,17 @@ Note that the dataset name may include some other value than `V2R5M3` - for exam
 
 Also, note that the FTP file transfer fails when some user is logged in the terminal - this results in an error `Not opened 13`.
 
+In the Linux command-line FTP client, the commands are:
+
+1. To open the FTP client: `ftp localhost 2121` (after running this command, you should be prompted for username and password)
+2. To list content of the currently active directory (or the root of the file system): `ls`
+3. To enter the BREXX samples directory: `cd BREXX.V2R5M3.SAMPLES`
+4. To set ASCII mode: `asci`
+5. To upload the file with the game: `put kulki`. If the file already exists on the MVS system, this file will be overwritten.
+6. To close the FTP client: `quit`
+
 ## Future improvements
 
-- interface controlled with arrow keys, with colors, using the [formatted screens](https://brexx370.readthedocs.io/en/latest/fss.html) feature
+- colored balls
+- interface controlled with arrow keys
 - saving the game state and restoring it later, using [dataset functions](https://brexx370.readthedocs.io/en/latest/dataset.html)
