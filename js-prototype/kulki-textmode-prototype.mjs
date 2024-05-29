@@ -87,7 +87,7 @@ const moveBall = (fromIndex, toIndex) => {
   board[fromIndex] = 0;
 };
 
-const emptyCellsList = new Uint8Array(cellsCount); // 0 = not empty, 1 = empty
+const emptyCellsList = new Uint8Array(cellsCount); // stores indices of empty cells
 let emptyCellsListCount = 0;
 
 const fillBoardWithSingleBall = () => {

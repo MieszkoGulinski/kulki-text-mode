@@ -34,6 +34,18 @@ CALL ISET(board, 32, 1)
 CALL ISET(board, 33, 3)
 CALL ISET(board, 62, 4)
 
+/* Queue for breadth-first search */
+queueArray = ICREATE(cellsCount, NULL)
+queueStartIndex = 0
+queueLength = 0
+
+/* Array storing if a cell is visited or not, for pathfinding algorithm. Stores 0 (false) or 1 (true). */
+isCellVisited = ICREATE(cellsCount, NULL)
+
+/* Array storing indices of empty cells */
+emptyCellsList = ICREATE(cellsCount, NULL)
+emptyCellsCount = 0
+
 /* Main game loop */
 DO FOREVER
   /* Display the board and score */
@@ -117,16 +129,64 @@ runUserCommand:
   RETURN startCellIndex || ' ' || endCellIndex
 RETURN ''
 
-checkPathExists:
-  ARG startCellIndex, endCellIndex
-  /* TODO implement */
-RETURN 1
-
 performMove:
   ARG startCellIndex, endCellIndex
   /* Returns 1 if there are no more moves possible */
   /* TODO implement */
 RETURN 0
+
+/* Queue operations for BFS-based pathfinding algorithm*/
+
+queuePush:
+  ARG valueToPush
+  targetIndex = (queueStartIndex + queueLength) % cellsCount /* zero-based because of using % */
+  CALL ISET(queueArray, targetIndex + 1, valueToPush)
+  queueLength = queueLength + 1
+RETURN
+
+queuePop:
+  valueFromQueue = IGET(queueArray, queueStartIndex + 1)
+  queueStartIndex = (queueStartIndex + 1) % cellsCount
+  queueLength = queueLength - 1
+RETURN valueFromQueue
+
+queueClear:
+  queueLength = 0
+RETURN
+
+/* Pathfinding algorithm */
+visitCell:
+  /* Adds a cell to the queue, if it exists (its coordinates are valid), it's empty and not visited yet */
+  /* Note that this function may be called for cells outside the board, then such cells should be ignored */
+  ARG x, y
+  IF x < 0 THEN RETURN
+  IF x >= width THEN RETURN
+  IF y < 0 THEN RETURN
+  IF y >= height THEN RETURN
+  
+  cellIndex = y * height + x
+  cellIndexOneBased = cellIndex + 1
+  
+  IF IGET(board,cellIndexOneBased) <> 0 THEN RETURN
+  IF IGET(isCellVisited,cellIndexOneBased) = 1 THEN RETURN
+
+  CALL ISET(isCellVisited, cellIndexOneBased, 1) /* mark as visited */
+  CALL queuePush(cellIndex)
+RETURN
+
+checkPathExists:
+  ARG startCellIndex, endCellIndex
+  CALL queueClear
+
+  /* Reset isCellVisited */
+  DO i=1 TO cellsCount
+    CALL ISET(isCellVisited, cellIndexOneBased, 0)
+  END
+
+  CALL queuePush(cellIndex) /* Start from the first cell */
+
+  /* ... */
+RETURN 1
 
 displayHelp:
   /* Using SAY when running in FSS (formatted screen) mode switches to an empty screen displaying the given text (or multiple lines). */
