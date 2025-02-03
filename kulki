@@ -19,6 +19,10 @@ CALL FSSFIELD 'STATUS', 19, 6, , #RED+#PROT
 CALL FSSTEXT 'Score:', 21, 6, , #WHITE+#PROT
 CALL FSSFIELD 'SCORE', 21, 12, , #GREEN+#PROT
 
+/* to use the debug field, call in the code: */
+/* CALL FSSFSET('DEBUG', queueLength) */
+CALL FSSFIELD 'DEBUG', 23, 6, , #RED+#PROT
+
 width = 9
 height = 9
 colorCount = 7
@@ -129,24 +133,34 @@ runUserCommand:
   RETURN startCellIndex || ' ' || endCellIndex
 RETURN ''
 
+/* Returns 1 if there are no more moves possible */
 performMove:
   ARG startCellIndex, endCellIndex
-  /* Returns 1 if there are no more moves possible */
-  /* TODO implement */
+  CALL moveBall(startCellIndex, endCellIndex)
+
+  /* TODO remove series and calculate score */
+  scoreIncrement = 0
+  IF scoreIncrement = 0 THEN DO
+    CALL fillBoardWithBalls(3)
+  END
+
+  isBoardFull = checkIsBoardFull()
+  RETURN isBoardFull
 RETURN 0
 
-/* Queue operations for BFS-based pathfinding algorithm*/
+/* Queue operations for BFS-based pathfinding algorithm */
+/* Queue contains zero-based cell indices */
 
 queuePush:
   ARG valueToPush
-  targetIndex = (queueStartIndex + queueLength) % cellsCount /* zero-based because of using % */
+  targetIndex = (queueStartIndex + queueLength) // cellsCount /* zero-based because of using modulo */
   CALL ISET(queueArray, targetIndex + 1, valueToPush)
   queueLength = queueLength + 1
 RETURN
 
 queuePop:
   valueFromQueue = IGET(queueArray, queueStartIndex + 1)
-  queueStartIndex = (queueStartIndex + 1) % cellsCount
+  queueStartIndex = (queueStartIndex + 1) // cellsCount
   queueLength = queueLength - 1
 RETURN valueFromQueue
 
@@ -175,18 +189,69 @@ visitCell:
 RETURN
 
 checkPathExists:
-  ARG startCellIndex, endCellIndex
+  ARG startCellIndex, endCellIndex /* zero based */
   CALL queueClear
 
   /* Reset isCellVisited */
   DO i=1 TO cellsCount
-    CALL ISET(isCellVisited, cellIndexOneBased, 0)
+    CALL ISET(isCellVisited, i, 0)
   END
 
-  CALL queuePush(cellIndex) /* Start from the first cell */
+  CALL queuePush(startCellIndex) /* Start from the first cell */
 
-  /* ... */
+  DO FOREVER
+    IF queueLength = 0 THEN RETURN 0 /* no more cells to visit = no path */
+    currentlyVisitedCellIndex = queuePop()
+    IF currentlyVisitedCellIndex = endCellIndex THEN RETURN 1
+
+    /* in REXX, // means remainder (modulo) and % means integer division */
+    /* for some unclear reason, // causes rounding off errors (1.000000003) so the number must be rounded */
+    growStartX = format(currentlyVisitedCellIndex // width)
+    growStartY = format(currentlyVisitedCellIndex % width)
+
+    CALL visitCell(growStartX-1, growStartY)
+    CALL visitCell(growStartX+1, growStartY)
+    CALL visitCell(growStartX, growStartY-1)
+    CALL visitCell(growStartX, growStartY+1)
+  END
 RETURN 1
+
+moveBall:
+  ARG startCellIndex, endCellIndex /* zero based */
+  color = IGET(board, startCellIndex + 1)
+  CALL ISET(board, startCellIndex + 1, 0)
+  CALL ISET(board, endCellIndex + 1, color)
+RETURN
+
+checkIsBoardFull:
+  DO i=1 TO cellsCount
+    color = IGET(board, i)
+    IF color = 0 THEN RETURN 0
+  END
+RETURN 1
+
+fillBoardWithBalls:
+  ARG addedBallsCount
+  DO i=1 TO addedBallsCount
+    CALL fillBoardWithSingleBall
+  END
+RETURN
+
+fillBoardWithSingleBall:
+  emptyCellsCount = 0
+  DO i=1 TO cellsCount
+    CALL ISET(emptyCellsList, emptyCellsCount + 1, i) /* emptyCellsList contains 1-based cell indices */
+    emptyCellsCount = emptyCellsCount + 1
+  END
+
+  IF emptyCellsCount = 0 THEN RETURN 0
+
+  randomIndex = RANDOM(1, emptyCellsCount + 1) /* 1-based */
+  targetCellIndex = IGET(emptyCellsList, randomIndex)
+  randomColor = RANDOM(1, colorCount)
+
+  CALL ISET(board, targetCellIndex, randomColor)
+RETURN
 
 displayHelp:
   /* Using SAY when running in FSS (formatted screen) mode switches to an empty screen displaying the given text (or multiple lines). */
