@@ -130,7 +130,7 @@ runUserCommand:
   IF isGameOver = 1 THEN RETURN 'Game over'
 
   /* Test code */
-  RETURN startCellIndex || ' ' || endCellIndex
+  /* RETURN startCellIndex || ' ' || endCellIndex */
 RETURN ''
 
 /* Returns 1 if there are no more moves possible */
@@ -237,21 +237,28 @@ fillBoardWithBalls:
   END
 RETURN
 
+/* Find a random empty cell and find it with a ball of random color */
+/* To ensure uniform distribution, internally the function makes a list of available empty fields, and */
+/* randomly selects */
+
 fillBoardWithSingleBall:
   emptyCellsCount = 0
-  DO i=1 TO cellsCount
-    CALL ISET(emptyCellsList, emptyCellsCount + 1, i) /* emptyCellsList contains 1-based cell indices */
-    emptyCellsCount = emptyCellsCount + 1
+  DO checkedCellIndex=1 TO cellsCount
+    cellContent = IGET(board, checkedCellIndex)
+    IF cellContent = 0 THEN DO
+      emptyCellsCount = emptyCellsCount + 1
+      CALL ISET(emptyCellsList, emptyCellsCount, checkedCellIndex) /* emptyCellsList contains 1-based cell indices */
+    END
   END
 
   IF emptyCellsCount = 0 THEN RETURN 0
 
-  randomIndex = RANDOM(1, emptyCellsCount + 1) /* 1-based */
+  randomIndex = RANDOM(1, emptyCellsCount) /* from min to max inclusive */
   targetCellIndex = IGET(emptyCellsList, randomIndex)
   randomColor = RANDOM(1, colorCount)
 
   CALL ISET(board, targetCellIndex, randomColor)
-RETURN
+RETURN 1
 
 displayHelp:
   /* Using SAY when running in FSS (formatted screen) mode switches to an empty screen displaying the given text (or multiple lines). */
