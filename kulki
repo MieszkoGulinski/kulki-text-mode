@@ -53,6 +53,11 @@ emptyCellsCount = 0
 /* Temporary copy of the board, used when removing series of balls */
 tempBoard = ICREATE(cellsCount, NULL)
 
+/* State of the series search */
+currentSeriesStart = 0
+currentSeriesCount = 0
+currentSeriesColor = 0
+
 /* Main game loop */
 DO FOREVER
   /* Display the board and score */
@@ -266,7 +271,11 @@ RETURN 1
 
 /* Because the series may overlap, e.g. there is a vertical and horizontal series of balls in the same color and a ball is common in both, */
 /* we cannot directly remove a series from the board - we must clone the board, remove the series from there, and copy the cloned board into */
-/* the main board array. */
+/* the main board array. So, while the functions removeHorizontalSeries, removeVerticalSeries etc search for the series on the original board, */
+/* they remove the series from tempBoard. */
+
+/* A useful simplification is that because the board is 9x9, and the minimum removed series has 5 balls, there can be at most 1 series in */
+/* each row/column/diagonal. So, if we find a deletable series, we can early return from a function and not search for another series. */
 
 removeSeriesAndUpdateScore:
   DO copiedCellIndex=1 TO cellsCount
@@ -275,10 +284,22 @@ removeSeriesAndUpdateScore:
   END
 
   partialScore = 0
-  partialScore = partialScore + removeHorizontalSeries()
-  partialScore = partialScore + removeVerticalSeries()
-  partialScore = partialScore + removeDiagonalSeries()
-  partialScore = partialScore + removeBackDiagonalSeries()
+  /* Horizontal */
+  DO searchStartY=0 TO height-1 
+    partialScore = partialScore + removeHorizontalSeries(searchStartY)
+  END
+  /* Vertical */
+  DO searchStartX=0 TO width-1
+    partialScore = partialScore + removeVerticalSeries(searchStartX)
+  END
+  /* Top left towards right bottom; x is starting column */
+  DO searchStartX=-4 TO width-4
+    partialScore = partialScore + removeDiagonalSeries(searchStartX)
+  END
+  /* Top right towards left bottom; x is starting column */
+  DO searchStartX=4 TO width+4
+    partialScore = partialScore + removeBackDiagonalSeries(searchStartX)
+  END
 
   DO copiedCellIndex=1 TO cellsCount
     color = IGET(tempBoard, copiedCellIndex)
@@ -286,20 +307,32 @@ removeSeriesAndUpdateScore:
   END
 RETURN partialScore
 
+/* All these functions accept zero-based argument */
+
 removeHorizontalSeries:
-  /* ... */
+  ARG y
+  CALL resetSeriesSearch
 RETURN 0
 
 removeVerticalSeries:
-  /* ... */
+  ARG x
+  CALL resetSeriesSearch
 RETURN 0
 
 removeDiagonalSeries:
-  /* ... */
+  ARG startX
+  CALL resetSeriesSearch
 RETURN 0
 
 removeBackDiagonalSeries:
-  /* ... */
+  ARG startX
+  CALL resetSeriesSearch
+RETURN 0
+
+resetSeriesSearch:
+  currentSeriesStart = 0
+  currentSeriesCount = 0
+  currentSeriesColor = 0
 RETURN 0
 
 displayHelp:
