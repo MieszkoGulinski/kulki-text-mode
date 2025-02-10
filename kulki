@@ -50,6 +50,9 @@ isCellVisited = ICREATE(cellsCount, NULL)
 emptyCellsList = ICREATE(cellsCount, NULL)
 emptyCellsCount = 0
 
+/* Temporary copy of the board, used when removing series of balls */
+tempBoard = ICREATE(cellsCount, NULL)
+
 /* Main game loop */
 DO FOREVER
   /* Display the board and score */
@@ -128,9 +131,6 @@ runUserCommand:
   IF checkPathExists(startCellIndex, endCellIndex) = 0 THEN RETURN 'No path between the cells'
   isGameOver = performMove(startCellIndex, endCellIndex)
   IF isGameOver = 1 THEN RETURN 'Game over'
-
-  /* Test code */
-  /* RETURN startCellIndex || ' ' || endCellIndex */
 RETURN ''
 
 /* Returns 1 if there are no more moves possible */
@@ -138,10 +138,12 @@ performMove:
   ARG startCellIndex, endCellIndex
   CALL moveBall(startCellIndex, endCellIndex)
 
-  /* TODO remove series and calculate score */
-  scoreIncrement = 0
+  scoreIncrement = removeSeriesAndUpdateScore()
+  score = score + scoreIncrement
   IF scoreIncrement = 0 THEN DO
     CALL fillBoardWithBalls(3)
+    scoreIncrement = removeSeriesAndUpdateScore()
+    score = score + scoreIncrement
   END
 
   isBoardFull = checkIsBoardFull()
@@ -238,8 +240,8 @@ fillBoardWithBalls:
 RETURN
 
 /* Find a random empty cell and find it with a ball of random color */
-/* To ensure uniform distribution, internally the function makes a list of available empty fields, and */
-/* randomly selects */
+/* To ensure uniform distribution, internally the function makes a list of available empty cells, and */
+/* randomly selects one from these cells. */
 
 fillBoardWithSingleBall:
   emptyCellsCount = 0
@@ -259,6 +261,46 @@ fillBoardWithSingleBall:
 
   CALL ISET(board, targetCellIndex, randomColor)
 RETURN 1
+
+/* Identifies series of 5 (or more) balls in the same color, removes them, and returns score increase from these series */
+
+/* Because the series may overlap, e.g. there is a vertical and horizontal series of balls in the same color and a ball is common in both, */
+/* we cannot directly remove a series from the board - we must clone the board, remove the series from there, and copy the cloned board into */
+/* the main board array. */
+
+removeSeriesAndUpdateScore:
+  DO copiedCellIndex=1 TO cellsCount
+    color = IGET(board, copiedCellIndex)
+    CALL ISET(tempBoard, copiedCellIndex, color)
+  END
+
+  partialScore = 0
+  partialScore = partialScore + removeHorizontalSeries()
+  partialScore = partialScore + removeVerticalSeries()
+  partialScore = partialScore + removeDiagonalSeries()
+  partialScore = partialScore + removeBackDiagonalSeries()
+
+  DO copiedCellIndex=1 TO cellsCount
+    color = IGET(tempBoard, copiedCellIndex)
+    CALL ISET(board, copiedCellIndex, color)
+  END
+RETURN partialScore
+
+removeHorizontalSeries:
+  /* ... */
+RETURN 0
+
+removeVerticalSeries:
+  /* ... */
+RETURN 0
+
+removeDiagonalSeries:
+  /* ... */
+RETURN 0
+
+removeBackDiagonalSeries:
+  /* ... */
+RETURN 0
 
 displayHelp:
   /* Using SAY when running in FSS (formatted screen) mode switches to an empty screen displaying the given text (or multiple lines). */
