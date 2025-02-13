@@ -54,7 +54,8 @@ emptyCellsCount = 0
 tempBoard = ICREATE(cellsCount, NULL)
 
 /* State of the series search */
-currentSeriesStart = 0
+currentSeriesStartX = 0
+currentSeriesStartY = 0
 currentSeriesCount = 0
 currentSeriesColor = 0
 
@@ -310,27 +311,66 @@ RETURN partialScore
 /* All these functions accept zero-based argument */
 
 removeHorizontalSeries:
-  ARG y
+  ARG searchStartY
   CALL resetSeriesSearch
+  DO cellX = 0 TO width - 1
+    CALL visitCellForSeriesSearch(cellX, searchStartY)
+  END
 RETURN 0
 
 removeVerticalSeries:
-  ARG x
+  ARG searchStartX
   CALL resetSeriesSearch
+  DO cellY = 0 TO height - 1
+    CALL visitCellForSeriesSearch(searchStartX, cellY)
+  END
 RETURN 0
 
 removeDiagonalSeries:
-  ARG startX
+  ARG searchStartX
   CALL resetSeriesSearch
+  DO counter = 0 TO height - 1
+    CALL visitCellForSeriesSearch(searchStartX + counter, counter)
+  END
 RETURN 0
 
 removeBackDiagonalSeries:
-  ARG startX
+  ARG searchStartX
   CALL resetSeriesSearch
+  DO counter = 0 TO height - 1
+    CALL visitCellForSeriesSearch(searchStartX - counter, counter)
+  END
 RETURN 0
 
+visitCellForSeriesSearch:
+  ARG x,y /* zero based */
+  /* during diagonal and back diagonal search, x may be out of bounds of board, */
+  /* and the field can be considered empty and ignored */
+  IF x < 0 THEN RETURN
+  IF x > (width - 1) THEN RETURN
+
+  cellIndex = y * width + x /* zero based */
+  color = IGET(board, cellIndex+1)
+
+  IF color = currentSeriesColor THEN DO
+    currentSeriesCount = currentSeriesCount + 1
+  END
+  /* TODO figure out how to use ELSE with DO...END */
+  IF color <> currentSeriesColor THEN DO
+    /* there will never be more than 1 series in a line, so if we find a series, we can ignore later balls use the search state */
+    /* (even having a series of 5 empty cells will make it impossible for another eligible series to exist) */
+    IF currentSeriesCount >= 5 THEN RETURN
+    
+    currentSeriesStartX = x
+    currentSeriesStartY = y
+    currentSeriesColor = color
+    currentSeriesCount = 1
+  END
+RETURN
+
 resetSeriesSearch:
-  currentSeriesStart = 0
+  currentSeriesStartX = 0
+  currentSeriesStartY = 0
   currentSeriesCount = 0
   currentSeriesColor = 0
 RETURN 0
