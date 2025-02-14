@@ -348,8 +348,8 @@ removeDiagonalSeries:
   END
   IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
     DO removedBallCounter=0 TO currentSeriesCount-1
-      removedCellX = removedBallCounter + currentSeriesStartX
-      removedCellY = removedBallCounter + currentSeriesStartY
+      removedCellX = currentSeriesStartX + removedBallCounter
+      removedCellY = currentSeriesStartY + removedBallCounter
       removedCellIndex = removedCellY * width + removedCellX + 1
       CALL ISET(tempBoard, removedCellIndex, 0)
     END
@@ -365,8 +365,8 @@ removeBackDiagonalSeries:
   END
   IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
     DO removedBallCounter=0 TO currentSeriesCount-1
-      removedCellX = removedBallCounter + currentSeriesStartX
-      removedCellY = currentSeriesStartY - removedBallCounter
+      removedCellX = currentSeriesStartX - removedBallCounter
+      removedCellY = currentSeriesStartY + removedBallCounter
       removedCellIndex = removedCellY * width + removedCellX + 1
       CALL ISET(tempBoard, removedCellIndex, 0)
     END
