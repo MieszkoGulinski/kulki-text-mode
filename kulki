@@ -31,13 +31,6 @@ cellsCount = width * height
 board = ICREATE(cellsCount, NULL)
 score = 0
 
-/* Example board */
-CALL ISET(board, 11, 4)
-CALL ISET(board, 21, 1)
-CALL ISET(board, 32, 1)
-CALL ISET(board, 33, 3)
-CALL ISET(board, 62, 4)
-
 /* Queue for breadth-first search */
 queueArray = ICREATE(cellsCount, NULL)
 queueStartIndex = 0
@@ -58,6 +51,9 @@ currentSeriesStartX = 0
 currentSeriesStartY = 0
 currentSeriesCount = 0
 currentSeriesColor = 0
+
+/* Initial board */
+CALL fillBoardWithBalls(5)
 
 /* Main game loop */
 DO FOREVER
@@ -370,7 +366,7 @@ removeBackDiagonalSeries:
   IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
     DO removedBallCounter=0 TO currentSeriesCount-1
       removedCellX = removedBallCounter + currentSeriesStartX
-      removedCellY = removedBallCounter - currentSeriesStartY
+      removedCellY = currentSeriesStartY - removedBallCounter
       removedCellIndex = removedCellY * width + removedCellX + 1
       CALL ISET(tempBoard, removedCellIndex, 0)
     END
