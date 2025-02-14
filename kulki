@@ -316,6 +316,15 @@ removeHorizontalSeries:
   DO cellX = 0 TO width - 1
     CALL visitCellForSeriesSearch(cellX, searchStartY)
   END
+  IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
+    DO removedBallCounter=0 TO currentSeriesCount-1
+      removedCellX = removedBallCounter + currentSeriesStartX
+      removedCellY = searchStartY
+      removedCellIndex = removedCellY * width + removedCellX + 1
+      CALL ISET(tempBoard, removedCellIndex, 0)
+    END
+    RETURN calculateScoreBySeriesLength(currentSeriesCount)
+  END
 RETURN 0
 
 removeVerticalSeries:
@@ -323,6 +332,15 @@ removeVerticalSeries:
   CALL resetSeriesSearch
   DO cellY = 0 TO height - 1
     CALL visitCellForSeriesSearch(searchStartX, cellY)
+  END
+  IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
+    DO removedBallCounter=0 TO currentSeriesCount-1
+      removedCellX = searchStartX
+      removedCellY = removedBallCounter + currentSeriesStartY
+      removedCellIndex = removedCellY * width + removedCellX + 1
+      CALL ISET(tempBoard, removedCellIndex, 0)
+    END
+    RETURN calculateScoreBySeriesLength(currentSeriesCount)
   END
 RETURN 0
 
@@ -332,6 +350,15 @@ removeDiagonalSeries:
   DO counter = 0 TO height - 1
     CALL visitCellForSeriesSearch(searchStartX + counter, counter)
   END
+  IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
+    DO removedBallCounter=0 TO currentSeriesCount-1
+      removedCellX = removedBallCounter + currentSeriesStartX
+      removedCellY = removedBallCounter + currentSeriesStartY
+      removedCellIndex = removedCellY * width + removedCellX + 1
+      CALL ISET(tempBoard, removedCellIndex, 0)
+    END
+    RETURN calculateScoreBySeriesLength(currentSeriesCount)
+  END
 RETURN 0
 
 removeBackDiagonalSeries:
@@ -339,6 +366,15 @@ removeBackDiagonalSeries:
   CALL resetSeriesSearch
   DO counter = 0 TO height - 1
     CALL visitCellForSeriesSearch(searchStartX - counter, counter)
+  END
+  IF currentSeriesCount >= 5 & currentSeriesColor <> 0 THEN DO
+    DO removedBallCounter=0 TO currentSeriesCount-1
+      removedCellX = removedBallCounter + currentSeriesStartX
+      removedCellY = removedBallCounter - currentSeriesStartY
+      removedCellIndex = removedCellY * width + removedCellX + 1
+      CALL ISET(tempBoard, removedCellIndex, 0)
+    END
+    RETURN calculateScoreBySeriesLength(currentSeriesCount)
   END
 RETURN 0
 
@@ -374,6 +410,11 @@ resetSeriesSearch:
   currentSeriesCount = 0
   currentSeriesColor = 0
 RETURN 0
+
+calculateScoreBySeriesLength:
+  ARG seriesLength
+  IF seriesLength < 5 THEN RETURN 0
+RETURN (seriesLength - 5) * 2 + 5
 
 displayHelp:
   /* Using SAY when running in FSS (formatted screen) mode switches to an empty screen displaying the given text (or multiple lines). */
